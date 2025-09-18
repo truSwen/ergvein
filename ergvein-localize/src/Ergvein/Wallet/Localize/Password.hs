@@ -7,6 +7,7 @@ module Ergvein.Wallet.Localize.Password
   , ConfirmEmptyPage(..)
   , StartHeightStrings(..)
   , PasswordTypePageStrings(..)
+  , ChangePasswordStrings(..)
   ) where
 
 import Data.Time
@@ -109,6 +110,16 @@ data PasswordWidgetStrings =
   | PWSInvalidPath
   | PWSMoreOptions
   | PWSLessOptions
+  | PWSCustomNode
+  | PWSCustomNodeDesc
+  | PWSNodeFiller
+  | PWSCheckNode
+  | PWSSaveNode
+  | PWSCancelNode
+  | PWSInvalidIP
+  | PWSNodeOffline
+  | PWSNodeActive Text
+  | PWSNodeSaved Text
 
 instance LocalizedPrint PasswordWidgetStrings where
   localizedShow l v = case l of
@@ -128,6 +139,16 @@ instance LocalizedPrint PasswordWidgetStrings where
       PWSInvalidPath   -> "Derivation path is invalid! Format m/0'/0'/0'"
       PWSMoreOptions   -> "Advanced settings"
       PWSLessOptions   -> "Advanced settings"
+      PWSCustomNode    -> "Private BTC node's IP"
+      PWSCustomNodeDesc -> "You can select a private node to use for all requests"
+      PWSNodeFiller    -> "Enter an IP address"
+      PWSCheckNode     -> "Check"
+      PWSSaveNode      -> "Save"
+      PWSCancelNode    -> "Cancel"
+      PWSInvalidIP     -> "Invalid ip"
+      PWSNodeOffline   -> "Node offline or is not a BTC node"
+      PWSNodeActive t  -> "Node <" <> t <> "> is online! Save it?"
+      PWSNodeSaved  t  -> "Node <" <> t <> "> is saved!"
     Russian -> case v of
       PWSPassword      -> "Пароль"
       PWSPassNamed n   -> "Пароль от " <> n
@@ -144,8 +165,18 @@ instance LocalizedPrint PasswordWidgetStrings where
       PWSInvalidPath   -> "Путь вывода неверен! Формат поля m/0'/0'/0'"
       PWSMoreOptions   -> "Дополнительные настройки"
       PWSLessOptions   -> "Дополнительные настройки"
+      PWSCustomNode    -> "IP адрес частного BTC-узла"
+      PWSCustomNodeDesc -> "Этот узел будет использоваться для всех запросов"
+      PWSNodeFiller    -> "Введите IP адрес"
+      PWSCheckNode     -> "Проверить"
+      PWSSaveNode      -> "Сохранить"
+      PWSCancelNode    -> "Отменить"
+      PWSInvalidIP     -> "Некорректный IP адрес"
+      PWSNodeOffline   -> "Узел оффлайн или не является BTC узлом"
+      PWSNodeActive t  -> "Узел <" <> t <> "> онлайн! Сохранить?"
+      PWSNodeSaved  t  -> "Узел <" <> t <> "> сохранён!"
 
-data ConfirmEmptyPage = CEPBack | CEPSkip | CEPAttention | CEPConsequences
+data ConfirmEmptyPage = CEPBack | CEPSkip | CEPAttention | CEPConsequences | CEPSure
 
 instance LocalizedPrint ConfirmEmptyPage where
   localizedShow l v = case l of
@@ -154,11 +185,13 @@ instance LocalizedPrint ConfirmEmptyPage where
       CEPSkip         -> "Skip"
       CEPAttention    -> "The password is empty. Are you sure?"
       CEPConsequences -> "The wallet will be accesible without password"
+      CEPSure         -> "I am sure"
     Russian -> case v of
       CEPBack         -> "Назад"
       CEPSkip         -> "Пропустить"
       CEPAttention    -> "Пустой пароль. Вы уверены?"
       CEPConsequences -> "Кошелёк будет доступен без ввода пароля"
+      CEPSure         -> "Я уверен"
 
 data StartHeightStrings = SHSDescr | SHSLabel | SHSParseError | SHSNonNegError | SHSEstimate BlockHeight
 
@@ -176,6 +209,19 @@ instance LocalizedPrint StartHeightStrings where
       SHSParseError   -> "Ошибка. Введите целое число"
       SHSNonNegError  -> "Высота должна быть 0 или больше"
       SHSEstimate h   -> "Дата начала (оценка): " <> showDate h
+
+data ChangePasswordStrings = CPSTitle | CPSDescr | CPSOld
+
+instance LocalizedPrint ChangePasswordStrings where
+  localizedShow l v = case l of
+    English -> case v of
+      CPSTitle -> "Change password"
+      CPSDescr -> "Enter the new password"
+      CPSOld   -> "You will have to enter the old password at the end"
+    Russian -> case v of
+      CPSTitle -> "Смена пароля"
+      CPSDescr -> "Введите новый пароль"
+      CPSOld   -> "В конце вам понадобится ввести старый пароль"
 
 showDate :: BlockHeight -> Text
 showDate h = T.pack $ formatTime defaultTimeLocale "%F" $ addUTCTime delta genDate

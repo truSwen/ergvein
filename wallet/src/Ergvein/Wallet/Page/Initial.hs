@@ -31,6 +31,9 @@ data OpenLastWallet = OpenLastWalletOn | OpenLastWalletOff
 
 initialPage :: MonadFrontBase t m => OpenLastWallet -> m ()
 initialPage openLastWallet = do
+  -- | Clear FLAG_KEEP_SCREEN_ON in case we end up on this page
+  -- because we went "back" from restore page, where this flag is set 
+  runOnMainThreadM androidClearScreenFlag
   logWrite "Initial page rendering"
   ss <- listStorages
   if null ss then noWalletsPage else hasWalletsPage openLastWallet ss
@@ -83,7 +86,7 @@ selectWalletsPage ss = wrapperSimple True $ divClass "initial-page-options" $ do
 loadWalletPage :: MonadFrontBase t m => WalletName -> m ()
 loadWalletPage name = do
   -- We could use `wrapperSimple True` here, but to draw the pin code widget to full screen, we need to use this
-  wrapperSimpleGeneric headerWidgetOnlyBackBtn "password-widget-container" False $ do
+  wrapperSimpleGeneric headerWidgetOnlyBackBtn "password-widget-container" False Nothing $ do
     buildE <- getPostBuild
     ePlainE <- performEvent $ loadWalletInfo name "" <$ buildE
     let oldAuthE' = fmapMaybe eitherToMaybe ePlainE
