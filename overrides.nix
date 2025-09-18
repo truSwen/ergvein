@@ -31,30 +31,6 @@ let
       export VERSION_TAG=${versionTag}
     '';
   });
-
-  addRust = stdenv: drv: pkgs.haskell.lib.overrideCabal drv (drv: let
-    nixTarget = stdenv.targetPlatform.config;
-    cargoTarget = if nixTarget == "aarch64-unknown-linux-android" then "aarch64-unknown-linux-gnu"
-      else if nixTarget == "armv7a-unknown-linux-androideabi" then "arm-linux-androideabi"
-      else nixTarget;
-    toolchain = with pkgs.fenix;
-      combine [
-        minimal.rustc
-        minimal.cargo
-        targets.${cargoTarget}.latest.rust-std
-      ];
-    in {
-    buildTools = (drv.buildTools or []) ++ [toolchain];
-    preConfigure = ''
-      export CARGO_BUILD_TARGET="${cargoTarget}"
-      export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/${cargoTarget}-gcc";
-      export CARGO_TARGET_ARM_LINUX_ANDROIDEABI_LINKER="${pkgs.pkgsCross.armv7l-hf-multiplatform.stdenv.cc}/bin/${cargoTarget}-gcc";
-      echo "CARGO_BUILD_TARGET=$CARGO_BUILD_TARGET"
-      echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER"
-      echo "CARGO_TARGET_ARM_LINUX_ANDROIDEABI_LINKER=$CARGO_TARGET_ARM_LINUX_ANDROIDEABI_LINKER"
-      ${drv.preConfigure or ""}
-    '';
-  });
 in (self: super: let
   # Internal packages (depends on production or dev environment)
   callInternal = name: path: args: (
@@ -80,7 +56,7 @@ in (self: super: let
     ergvein-node-discovery = ingnoreGarbage super.ergvein-node-discovery;
     ergvein-types = ingnoreGarbage super.ergvein-types;
     ergvein-wallet = addVersions (ingnoreGarbage (super.callCabal2nixWithOptions "ergvein-wallet" ./wallet walletOpts {}));
-    ergvein-wallet-version = ingnoreGarbage super.ergvein-wallet-version;
+    ergvein-wallet-version = ingnoreGarbage (super.callCabal2nixWithOptions "ergvein-wallet-version" ./wallet-version walletOpts {});
     golomb-rice = ingnoreGarbage super.golomb-rice;
     reflex-dom-retractable = ingnoreGarbage super.reflex-dom-retractable;
     reflex-external-ref = ingnoreGarbage super.reflex-external-ref;
@@ -99,22 +75,31 @@ in (self: super: let
     android-activity = self.callPackage ./derivations/android-activity.nix {
       inherit (pkgs.buildPackages) jdk;
     };
+    cairo = self.callPackage ./derivations/cairo.nix { cairo = pkgs.cairo; };
+    glib = self.callPackage ./derivations/glib.nix { glib = pkgs.glib; };
+    gio = self.callPackage ./derivations/gio.nix { system-glib = pkgs.glib; };
+    pango = self.callPackage ./derivations/pango.nix { pango = pkgs.pango; };
+    bitcoin-tx = self.callPackage ./derivations/bitcoin-tx.nix {};
+    lens-aeson = lib.dontCheck super.lens-aeson;
     bitcoin-api = self.callPackage ./derivations/haskell-bitcoin-api.nix {};
     bitstream = self.callPackage ./derivations/bitstream.nix { };
     byte-order = self.callPackage ./derivations/byte-order.nix {};
-    bytestring-trie = self.callPackage ./derivations/bytestring-trie.nix {};
     clay = self.callPackage ./derivations/clay.nix {};
     criterion = lib.dontCheck super.criterion;
-    cryptonite = self.callPackage ./derivations/cryptonite.nix {};
+    http-media = lib.dontCheck super.http-media;
     flat = lib.dontCheck (super.flat);
     haskey = self.callPackage ./derivations/haskey.nix {};
     haskoin-core = self.callPackage ./derivations/haskoin-core.nix {};
     hp2any-core = self.callPackage ./derivations/hp2any-core.nix {};
     hp2any-graph = self.callPackage ./derivations/hp2any-graph.nix {};
     immortal-worker = self.callPackage ./derivations/immortal-worker.nix {};
-    iproute = self.callPackage ./derivations/iproute.nix {};
+    iproute = lib.dontCheck (self.callPackage ./derivations/iproute.nix {});
     lmdb = self.callPackage ./derivations/haskell-lmdb.nix {};
     parseargs = lib.dontCheck super.parseargs;
+    semigroupoids = lib.dontCheck super.semigroupoids;
+    generic-data = lib.dontCheck super.generic-data;
+    http-types = lib.dontCheck super.http-types;
+    bytes = lib.dontCheck super.bytes;
     persistent-pagination = self.callPackage ./derivations/persistent-pagination.nix {};
     primitive-unaligned = self.callPackage ./derivations/primitive-unaligned.nix {};
     reflex = enableCabalFlag super.reflex "O2";
@@ -126,15 +111,24 @@ in (self: super: let
     x509-android = super.callCabal2nixWithOptions "x509-android" ./x509-android walletOpts {};
     x509-validation = lib.dontCheck super.x509-validation;
     zlib = self.callPackage ./derivations/zlib.nix {};
-    pandoc = self.callPackage ./derivations/pandoc.nix {};
-    pandoc-types = self.callPackage ./derivations/pandoc-types.nix {};
+    pandoc = lib.dontCheck (lib.doJailbreak (self.callPackage ./derivations/pandoc.nix {}));
+    pandoc-types = lib.doJailbreak (self.callPackage ./derivations/pandoc-types.nix {});
+    servant = lib.dontCheck (lib.doJailbreak super.servant);
+    servant-client-core = lib.dontCheck (lib.doJailbreak super.servant-client-core);
+    servant-client = lib.dontCheck (lib.doJailbreak super.servant-client);
+    servant-server = lib.dontCheck (lib.doJailbreak super.servant-server);
     texmath = self.callPackage ./derivations/texmath.nix {};
     HsYAML = self.callPackage ./derivations/HsYAML.nix {};
     doctemplates = self.callPackage ./derivations/doctemplates.nix {};
     haddock-library = self.callPackage ./derivations/haddock-library.nix {};
-    hslua = self.callPackage ./derivations/hslua.nix {};
+    hslua = lib.doJailbreak (self.callPackage ./derivations/hslua.nix {});
     skylighting = self.callPackage ./derivations/skylighting.nix {};
     skylighting-core = self.callPackage ./derivations/skylighting-core.nix {};
-    pandoc-citeproc = self.callPackage ./derivations/pandoc-citeproc.nix {};
+    pandoc-citeproc = lib.doJailbreak (self.callPackage ./derivations/pandoc-citeproc.nix {});
+    hpack = self.callPackage ./derivations/hpack.nix {};
+    dns = self.callPackage ./derivations/dns.nix {};
+    distributive = lib.dontCheck super.distributive;
+    hakyll = lib.dontCheck (lib.doJailbreak (self.callPackage ./derivations/hakyll.nix {}));
+    commutative-semigroups = self.callPackage ./derivations/commutative-semigroups.nix {};
   }
 )

@@ -23,6 +23,7 @@ module Ergvein.Core.Store.Monad(
   , txListToMap
   , addOutgoingTx
   , removeOutgoingTxs
+  , removeStorageTx
   , getBtcBlockHashByTxHash
   , getTxStorage
   , getTxById
@@ -31,9 +32,16 @@ module Ergvein.Core.Store.Monad(
   , setScannedHeightE
   , getScannedHeightD
   , getScannedHeight
+  , addSuperbBtcNode
+  , removeSuperbBtcNode
+  , getCustomNodeD
+  , isCustomModeD
   , getConfirmedTxs
   , getUnconfirmedTxs
   , setSeedBackupRequired
+  , setRestoreStartHeightE
+  , clearCustomNode
+  , setCustomNode
   ) where
 
 import Control.Concurrent.MVar
@@ -43,12 +51,14 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.IO.Unlift
 import Control.Monad.Reader
+import Crypto.Random.Types (MonadRandom)
 import Data.Functor (void)
 import Data.Map (Map)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Set (Set)
 import Data.Text (Text)
 import Ergvein.Crypto
+import Ergvein.Text
 import Ergvein.Types.Currency
 import Ergvein.Types.Keys
 import Ergvein.Types.Storage
@@ -57,7 +67,7 @@ import Ergvein.Types.Storage.Currency.Public.Btc
 import Ergvein.Types.Transaction
 import Ergvein.Types.Utxo.Btc
 import Ergvein.Types.WalletInfo
-import Crypto.Random.Types (MonadRandom)
+import Network.Socket
 import Reflex
 import Sepulcas.Native
 
@@ -354,13 +364,18 @@ addOutgoingTx caller reqE =  modifyPubStorage clr $ ffor reqE $ \etx ->
   Just . modifyCurrStorage (egvTxCurrency etx) (currencyPubStorage'outgoing %~ S.insert (egvTxId etx))
   where clr = caller <> ":" <> "addOutgoingTx"
 
-removeOutgoingTxs :: MonadStorage t m => Text -> Currency -> Event t [EgvTx] -> m (Event t ())
+removeOutgoingTxs :: MonadStorage t m => Text -> Currency -> Event t [TxId] -> m (Event t ())
 removeOutgoingTxs caller cur reqE = modifyPubStorage clr $ ffor reqE $ \etxs ps -> let
-  remset = S.fromList $ egvTxId <$> etxs
+  remset = S.fromList etxs
   outs = ps ^. pubStorage'currencyPubStorages . at cur . non (error "removeOutgoingTxs: not exsisting store!") . currencyPubStorage'outgoing
   uni = S.intersection outs remset
   in if S.null uni then Nothing else Just $ modifyCurrStorage cur (currencyPubStorage'outgoing %~ flip S.difference remset) ps
   where clr = caller <> ":" <> "removeOutgoingTxs"
+
+removeStorageTx :: MonadStorage t m => Text -> Currency -> Event t TxId -> m (Event t ())
+removeStorageTx caller cur reqE = modifyPubStorage clr $ ffor reqE $ \tx ps ->
+  Just $ modifyCurrStorage cur (currencyPubStorage'transactions %~ M.delete tx) ps
+  where clr = caller <> ":" <> "removeStorageTxs"
 
 storeBlockHeadersE :: MonadStorage t m => Text -> Currency -> Event t [HB.Block] -> m (Event t [HB.Block])
 storeBlockHeadersE caller _ reqE = do
@@ -376,6 +391,10 @@ storeBlockHeadersE caller _ reqE = do
 setScannedHeightE :: MonadStorage t m => Currency -> Event t BlockHeight -> m (Event t ())
 setScannedHeightE cur he = modifyPubStorage "setScannedHeightE" $ ffor he $ \h ->
   Just . modifyCurrStorage cur (currencyPubStorage'scannedHeight .~ h)
+
+setRestoreStartHeightE :: MonadStorage t m => Event t BlockHeight -> m (Event t ())
+setRestoreStartHeightE he = modifyPubStorage "setRestoreStartHeightE" $ ffor he $ \h ps ->
+  Just $ modifyCurrStorageBtc (btcPubStorage'restoreStartHeight ?~ h) ps
 
 setSeedBackupRequired :: MonadStorage t m => Event t Bool -> m (Event t ())
 setSeedBackupRequired e = modifyPubStorage "setSeedBackupRequired" $ ffor e $ \seedBackupRequired ps ->
@@ -394,6 +413,31 @@ getScannedHeight cur = do
     ^. pubStorage'currencyPubStorages
     . at cur)
 
+addSuperbBtcNode :: MonadStorage t m => Event t SockAddr -> m (Event t ())
+addSuperbBtcNode saE = modifyPubStorage "addSuperbBtcNode" $ ffor saE $ \sa ps ->
+  Just $ modifyCurrStorageBtc (btcPubStorage'preferredNodes %~ S.insert (showt sa)) ps
+
+removeSuperbBtcNode :: MonadStorage t m => Event t SockAddr -> m (Event t ())
+removeSuperbBtcNode saE = modifyPubStorage "removeSuperbBtcNode" $ ffor saE $ \sa ps ->
+  Just $ modifyCurrStorageBtc (btcPubStorage'preferredNodes %~ S.delete (showt sa)) ps
+
+getCustomNodeD :: (MonadStorage t m, MonadFix m) => m (Dynamic t (Maybe Text))
+getCustomNodeD = do
+  pubStorageD <- getPubStorageD
+  holdUniqDyn $ ffor pubStorageD $ \ps -> let
+    PubStorageBtc bs = ps ^. btcPubStorage . currencyPubStorage'meta
+    in bs ^. btcPubStorage'customNode
+
+clearCustomNode :: MonadStorage t m => Event t () -> m (Event t ())
+clearCustomNode clearE = modifyPubStorage "clearCustomNode" $ ffor clearE $ \_ ps ->
+  Just $ modifyCurrStorageBtc (btcPubStorage'customNode .~ Nothing) ps
+
+setCustomNode :: MonadStorage t m => Event t Text -> m (Event t ())
+setCustomNode setE = modifyPubStorage "setCustomNode" $ ffor setE $ \n ps ->
+  Just $ modifyCurrStorageBtc (btcPubStorage'customNode .~ Just n) ps
+
+isCustomModeD :: (MonadStorage t m, MonadFix m) => m (Dynamic t Bool)
+isCustomModeD = holdUniqDyn . fmap isJust =<< getCustomNodeD
 
 -- ===========================================================================
 --           HasPubStorage helpers

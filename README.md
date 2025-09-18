@@ -2,12 +2,12 @@
 
 ![Build all](https://github.com/hexresearch/ergvein/workflows/Build%20all/badge.svg)
 
-Ergvein is MVP implementation for [Cypra](https://cypra.io) ecosystem. It is cryptocurrency [SPV](https://bitcoin.org/en/operating-modes-guide#simplified-payment-verification-spv) wallet that is focused on privacy, decentralized exchange and heavy usage of smart contracts. The wallet is Bitcoin only at the moment. The project encourages users to host their own backend node.
+Ergvein is MVP implementation for [Cypra](https://cypra.io) ecosystem. It is cryptocurrency [SPV](https://developer.bitcoin.org/devguide/operating_modes.html?highlight=spv#simplified-payment-verification-spv) wallet that is focused on privacy, decentralized exchange and heavy usage of smart contracts. The wallet is Bitcoin only at the moment. The project encourages users to host their own backend node.
 
 **Wallet is not finished yet! Consider the product as alpha quality and subject for changes.**
 
 Features:
-* We use [SPV](https://bitcoin.org/en/operating-modes-guide#simplified-payment-verification-spv) design. Wallet doesn't trust nodes. All data is double checked: the wallet samples multiple nodes and checks results for consistency.
+* We use [SPV](https://developer.bitcoin.org/devguide/operating_modes.html?highlight=spv#simplified-payment-verification-spv) design. Wallet doesn't trust nodes. All data is double checked: the wallet samples multiple nodes and checks results for consistency.
 * Private keys are stored in encrypted storage and never leave your device. All wallet data is encrypted and protected by your password.
 * Android platform
 * Decentralized public network of indexing nodes that allows users to make money when they run them.
@@ -50,7 +50,7 @@ Fill password and answer questions for certificate, next put password in a file,
 
 Next, you can build release with:
 ```
-./release-android --arg releasePasswordFile ./release/my-password --arg releaseKeyStore ./release/my_store.keystore
+./release-android.sh --arg releasePasswordFile ./release/my-password --arg releaseKeyStore ./release/my_store.keystore
 ```
 Results will be symlinked in folders `android-release` for bundle and `android-release-apk` for APK version, we provide both
 as bundles are not easy for manual installation.
