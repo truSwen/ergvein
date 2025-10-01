@@ -2,7 +2,10 @@ import sqlite3
 import os
 
 def setup_database():
-    """Létrehozza az adatbázist, a szükséges táblákat, és feltölti mintaadatokkal."""
+    """
+    Létrehozza az adatbázist, a szükséges táblákat, 
+    és feltölti egyedi tesztadattal a fejlesztéshez.
+    """
     try:
         # Az adatbázis fájl helyének meghatározása a szkripthez képest
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tracker.db')
@@ -37,31 +40,19 @@ def setup_database():
         ''')
         print("A 'LocationUpdates' tábla sikeresen létrehozva vagy már létezik.")
 
-        # --- Mintaadatok Beszúrása (Javasolt Kiegészítés) ---
+        # --- Tesztadat Beszúrása (a te logikád alapján) ---
         
-        # Ellenőrizzük, hogy az Orders tábla üres-e, hogy ne szúrjunk be duplikált adatokat
-        cursor.execute("SELECT COUNT(id) FROM Orders")
-        # A fetchone() egy tuple-t ad vissza, pl. (0,) vagy (5,), ezért kell az első elem.
-        if cursor.fetchone()[0] == 0:
-            print("Mintaadatok beszúrása...")
-            sample_orders = [
-                ('CAREGO-TEST-123', 'Felvéve'),
-                ('CAREGO-TEST-456', 'Kiszállítás alatt'),
-                ('CAREGO-TEST-789', 'Központi raktárban')
-            ]
-            cursor.executemany("INSERT INTO Orders (tracking_code, status) VALUES (?, ?)", sample_orders)
-            print(f"{len(sample_orders)} mintamegrendelés hozzáadva az 'Orders' táblához.")
-
-            # Hozzáadhatunk egy minta helyzetfrissítést is az egyik rendeléshez
-            sample_location_update = ('CAREGO-TEST-456', 47.4979, 19.0402) # Budapest koordinátái
-            cursor.execute(
-                "INSERT INTO LocationUpdates (order_tracking_code, latitude, longitude) VALUES (?, ?, ?)",
-                sample_location_update
-            )
-            print("Egy minta helyzetfrissítés hozzáadva a 'LocationUpdates' táblához.")
+        # Ellenőrizzük, hogy a teszt adat már létezik-e
+        cursor.execute("SELECT * FROM Orders WHERE tracking_code = 'TEST123'")
+        if cursor.fetchone():
+            print("A 'TEST123' követési kódú teszt megrendelés már létezik.")
         else:
-            print("Az 'Orders' tábla már tartalmaz adatokat, a mintaadatok beszúrása kihagyva.")
-
+            # Teszt megrendelés beszúrása
+            cursor.execute(
+                "INSERT INTO Orders (tracking_code, status) VALUES (?, ?)",
+                ('TEST123', 'folyamatban')
+            )
+            print("A 'TEST123' követési kódú teszt megrendelés sikeresen hozzáadva.")
 
         # Változtatások mentése és kapcsolat bezárása
         conn.commit()
