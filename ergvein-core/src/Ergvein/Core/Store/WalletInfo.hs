@@ -19,7 +19,6 @@ import Reflex.Localize
 import Reflex.Localize.Language
 import Sepulcas.Native
 
-import Data.Text (Text)
 import qualified Data.Text as T
 
 data WalletInfoAlert = CreateStorageAlert !StorageAlert | GenerateECIESKeyAlert | LoadStorageAlert !StorageAlert
@@ -36,12 +35,11 @@ initWalletInfo :: (MonadIO m, PlatformNatives, HasStoreDir m, LocalizedPrint Sto
   -> Password
   -> BlockHeight
   -> Bool
-  -> Maybe Text
   -> m (Either WalletInfoAlert WalletInfo)
-initWalletInfo lang wt seedBackupRequired mpath mnemonic curs login pass startingHeight isPass mnode = do
+initWalletInfo lang wt seedBackupRequired mpath mnemonic curs login pass startingHeight isPass = do
   let fname = "meta_wallet_" <> T.replace " " "_" login
   when (isAndroid && isPass) $ storeValue fname True True
-  mstorage <- createStorage (wt == WalletRestored) seedBackupRequired mpath mnemonic (login, pass) startingHeight curs mnode
+  mstorage <- createStorage (wt == WalletRestored) seedBackupRequired mpath mnemonic (login, pass) startingHeight curs
   case mstorage of
     Left err -> do
       logWrite $ localizedShow lang err

@@ -713,17 +713,35 @@ aboutPageCss = do
 
 networkPageCss :: PlatformNatives => Css
 networkPageCss = do
-  ".network-page" ? do
-    flexGrow 1
-    display flex
-    flexDirection column
-  ".network-item:not(:last-child)" ? do
-    marginBottom $ rem 1
+  ".network-wrapper" ? do
+    textAlign center
+  ".network-title-table" ? do
+    display displayTable
+  ".network-title-row" ? do
+    display tableRow
+  ".network-title-name" ? do
+    display tableCell
+    paddingTop $ px 15
+    paddingRight $ px 3
+    textAlign $ alignSide sideLeft
+    width $ pct 65
+  ".network-title-cur" ? do
+    display tableCell
+    paddingTop $ px 15
+    paddingRight $ px 3
+    width $ pct 35
+    textAlign $ alignSide sideRight
+  ".network-title-cur > .select-lang" ? do
+    width maxContent
   ".network-hr-sep" ? do
     marginTop $ px 5
     border solid (px 3) black
   ".network-hr-sep-lb" ? do
     border solid (px 1) black
+  ".network-hr-sep-nomargin" ? do
+    border none none none
+    marginTop $ em 0.5
+    marginBottom $ em 0.5
   ".network-name" ? do
     display flex
     width $ pct 100
@@ -732,6 +750,11 @@ networkPageCss = do
     textAlign $ alignSide sideLeft
     wordBreak breakAll
     paddingRight $ em 0.5
+  ".network-name-edit" ? do
+    display inlineBlock
+    float floatRight
+    fontWeight bold
+    color "#3F7FBF"
   ".network-edit-btn" ? do
     width fitContent
     paddingLeft $ em 1.5
@@ -741,6 +764,8 @@ networkPageCss = do
     float floatLeft
     fontWeight bold
   ".network-descr" ? do
+    display inlineBlock
+    float floatLeft
     fontStyle italic
     fontSizeCustom smaller
     textAlign $ alignSide sideLeft
@@ -763,28 +788,26 @@ networkPageCss = do
     verticalAlign vAlignTop
   ".net-btns-3" ? do
     display grid
+    width maxContent
     gridGap $ em 0.5
-    gridTemplateColumns [fr 1]
+    marginLeft auto
+    marginRight auto
   ".net-btns-2" ? do
     display grid
+    width maxContent
     gridGap $ em 0.5
-    gridTemplateColumns [fr 1]
-  query M.screen [M.maxWidth mobileBreakpoint] $ ".network-page" ? do
-    justifyContent spaceBetween
-  query M.screen [M.minWidth mobileBreakpoint] $ ".net-btns-3" ? do
+    marginLeft auto
+    marginRight auto
+  query M.screen [M.minWidth tabletBreakpoint] $ ".net-btns-3" ? do
     display grid
     gridTemplateColumns [fr 1, fr 1, fr 1]
     gridGap $ em 0.5
     width maxContent
-    marginLeft auto
-    marginRight auto
-  query M.screen [M.minWidth mobileBreakpoint] $ ".net-btns-2" ? do
+  query M.screen [M.minWidth tabletBreakpoint] $ ".net-btns-2" ? do
     display grid
     gridTemplateColumns [fr 1, fr 1]
     gridGap $ em 0.5
     width maxContent
-    marginLeft auto
-    marginRight auto
 
 infoPageCss :: Css
 infoPageCss = do
@@ -1107,9 +1130,6 @@ legoStyles = do
   ".fit-content" ? width fitContent
   ".disp-block" ? display block
   ".flex-grow" ? flexGrow 1
-  ".flex-column" ? do
-    display flex 
-    flexDirection column
   ".overflow-wrap-bw" ? overflowWrap breakWord
   let fillBtnColor cl backCol fontCol = do
         let colorSet = do

@@ -10,7 +10,8 @@ import Ergvein.Types.Utxo.Btc
 import Ergvein.Wallet.Language
 import Ergvein.Wallet.Localize
 import Ergvein.Wallet.Monad
-import {-# SOURCE #-} Ergvein.Wallet.Navbar
+import Ergvein.Wallet.Navbar
+import Ergvein.Wallet.Navbar.Types
 import Ergvein.Wallet.Page.History.Common ( noTxsPlaceholder )
 import Ergvein.Wallet.Page.Seed
 import Ergvein.Wallet.Page.TxInfo.Btc

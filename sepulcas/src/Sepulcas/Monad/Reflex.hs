@@ -35,6 +35,8 @@ type MonadReflex t m =
   , TriggerEvent t m
   , MonadJSM m
   , DomBuilderSpace m ~ GhcjsDomSpace
+  , HasJSContext m
+  , HasJSContext (Performable m)
   , HasDocument m
   , MonadRef m
   , Ref m ~ Ref IO

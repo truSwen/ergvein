@@ -18,7 +18,8 @@ import Ergvein.Types.Utxo.Btc
 import Ergvein.Wallet.Language
 import Ergvein.Wallet.Localize
 import Ergvein.Wallet.Monad
-import {-# SOURCE #-} Ergvein.Wallet.Navbar
+import Ergvein.Wallet.Navbar
+import Ergvein.Wallet.Navbar.Types
 import Ergvein.Wallet.Orphanage ()
 import Ergvein.Wallet.Page.Balances
 import Ergvein.Wallet.Page.TxInfo.Common
@@ -82,10 +83,10 @@ sendPageBtc :: MonadFront t m
 sendPageBtc mInitInput = mdo
   walletName <- getWalletName
   title <- localized walletName
-  let thisWidget = Just $ sendPageBtc <$> infoD
-      navbar = if isAndroid
+  let navbar = if isAndroid
         then blank
         else navbarWidget BTC thisWidget NavbarSend
+      thisWidget = Just $ sendPageBtc <$> infoD
   infoD <- wrapperNavbar False title thisWidget navbar $ divClass "send-page" $ mdo
     settings <- getSettings
     let mAmountInit = userInput'amount <$> mInitInput

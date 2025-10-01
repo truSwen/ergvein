@@ -7,7 +7,6 @@ module Ergvein.Wallet.Page.TxInfo.Btc(
   ) where
 
 import Control.Monad.Reader
-import Data.Foldable (for_)
 import Data.Time
 
 import {-# SOURCE #-} Ergvein.Wallet.Page.BumpFee
@@ -17,7 +16,6 @@ import Ergvein.Wallet.Language
 import Ergvein.Wallet.Localize
 import Ergvein.Wallet.Monad
 import Ergvein.Wallet.Page.TxInfo.Common
-import Ergvein.Wallet.Page.TxInfo.Remove
 import Ergvein.Wallet.Settings
 import Ergvein.Wallet.Wrapper
 import Sepulcas.Elements
@@ -64,15 +62,6 @@ txInfoPage txView@TxView{..} = do
         traverse_ (makeNumberedTxIdLink currency) (L.zip [1..] possiblyReplacedTxs)
     infoPageElementEl HistoryTITime $ showTime txView
     infoPageElement HistoryTIConfirmations $ showt $ txDetailedView'confirmations txView'detailedView
-    let removePossible = txView'inOut == TransWithdraw && txDetailedView'confirmations txView'detailedView == 0
-    when removePossible $ do 
-      let mtxid = egvTxHashFromStr currency $ txDetailedView'txId $ txView'detailedView
-      for_ mtxid $ \txid -> do 
-        removeE <- divClass "mt-1" $ outlineButton HistoryTIRemoveBtn
-        void $ nextWidget $ ffor removeE $ const
-          Retractable
-            {retractableNext = removeTxPage currency txid,
-             retractablePrev = thisWidget}
     infoPageElementExpEl HistoryTIBlock $ maybe (text "unknown") (\(bllink,bl) -> hyperlink "link" bl bllink) $ txDetailedView'block txView'detailedView
     case txView'inOut of
       TransRefill -> pure ()

@@ -83,8 +83,7 @@ main = do
     test :: MonadSettings t m => SockAddr -> m (NodeBtc t)
     test addr = do
       (msgE, msgFire) <- newTriggerEvent
-      let initRating = 100 -- Initial rating for the node. 100 is a perfect node
-      btcNode <- initBtcNode True initRating addr msgE
+      btcNode <- initBtcNode True addr msgE
 
       --handshake
       handshakeE <- delay 0.5 . ffilter id . updated . nodeconIsUp $ btcNode

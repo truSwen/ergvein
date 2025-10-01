@@ -71,8 +71,10 @@ indexerNodeController initialAddresses = mdo
         let closedSocketE  = not . isCloseFinal <$> indexConClosedE conn
             closedConnectionE = leftmost [ closedSocketE, True <$ timeoutE]
         -- remove the connection from the connection map
-        performEvent $ ffor closedConnectionE $
+        closedConnectionE' <- performEvent $ ffor closedConnectionE $
           ((modifyExternalRef activeConnectionsRef $ (, ()) . M.delete address) >>) . pure
+        -- send out the event to delete this widget
+        pure closedConnectionE'
       _ -> (True <$) <$> getPostBuild
     pure $ (address,) <$> closedConnectionE
   pure ()
@@ -98,7 +100,7 @@ connectionLatencyWidget connection = mdo
       fireReq  <- getIndexReqFire
       performFork_ $ ffor e $ const $ liftIO $ do
         pingPayload <- randomIO
-        fireReq $ M.singleton (indexConName connection) $ IndexerMsg (MPing pingPayload)
+        fireReq $ M.singleton (indexConName connection) $ (IndexerMsg $ MPing pingPayload)
       pure $ fforMaybe (indexConRespE connection) $ \case
                       MPong _  ->  Just ()
                       _        ->  Nothing

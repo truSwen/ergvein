@@ -45,7 +45,7 @@ settingsPageUnauth = wrapperSimple True $ do
     void $ nextWidget $ ffor goE $ \spg -> Retractable {
         retractableNext = case spg of
           GoLanguage -> languagePageUnauth
-          GoNetwork  -> activeIndexersPageUnauth
+          GoNetwork  -> networkSettingsPageUnauth
           GoDns      -> dnsPageUnauth
           GoTor      -> torPageUnauth
       , retractablePrev = Just $ pure settingsPageUnauth

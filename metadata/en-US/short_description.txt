@@ -1,1 +1,0 @@
-Bitcoin wallet with BIP-158 client filters

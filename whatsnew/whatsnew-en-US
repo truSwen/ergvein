@@ -1,1 +1,4 @@
-* Add button to remove stale transactions
+* Pincode is now number based and hardened with more rounds of hashing
+* Fixed bugs with wallet saving.
+* PBKDF2 replaced with scrypt key stretching to improve resistance to bruteforce attacks.
+* Mempool scanning using the same BIP158 filters.
