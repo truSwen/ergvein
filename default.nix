@@ -1,5 +1,4 @@
 { release ? false
-, signApk ? release
 , profile ? false
 , gitHash ? null
 , releaseBundle ? true
@@ -98,7 +97,7 @@ let
     android.ergvein-wallet = {
       executableName = "ergvein";
       applicationId = "org.ergvein.wallet";
-      displayName = "Cypra wallet";
+      displayName = "Ergvein wallet";
       resources = ./wallet/static/res;
       assets = ./wallet/static/assets;
       iconPath = "@drawable/ic_launcher";
@@ -118,13 +117,12 @@ let
       inherit releaseBundle;
       releaseKey = let
         readPassword = file: builtins.replaceStrings ["\n"] [""] (builtins.readFile file);
-      in if signApk then {
+      in if release then {
         storeFile = releaseKeyStore;
         storePassword = readPassword releasePasswordFile;
         keyAlias = "ergvein_releasekey";
         keyPassword = readPassword releasePasswordFile;
       } else null;
-      isRelease = release;
       services = ''
       <provider
           android:name="androidx.core.content.FileProvider"

@@ -108,6 +108,7 @@ logAlerts l e = postLogEvnt $ ffor e $ \AlertInfo{..} -> LogEntry {
   , logNameSpace = alertNameSpace
   }
   where
+        -- | Posting log message
     postLogEvnt :: Event t LogEntry -> m ()
     postLogEvnt evt = do
       (_, fire) <- getLogsTrigger

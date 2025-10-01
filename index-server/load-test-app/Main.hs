@@ -4,7 +4,6 @@ import Control.Concurrent
 import Control.Monad
 import Control.Monad.Trans.Except
 import Data.ByteString.Builder
-import Data.Serialize.Put (runPutLazy)
 import Data.Time.Clock.POSIX
 import Data.Word
 import Ergvein.Index.Protocol.Deserialization
@@ -57,7 +56,7 @@ receiveFilters s = do
   forM_ [filterStartHeight, filterStartHeight + filterBatchSize .. filterEndHeight] recvByHeight
   T.putStrLn "Done full range filters receiving"
   where
-    doSend = sendLazy s . runPutLazy . messageBuilder
+    doSend = sendLazy s . toLazyByteString . messageBuilder
     recvExact n = do
       bs <- recv s n
       let bsL = BS.length bs

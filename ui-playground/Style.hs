@@ -126,7 +126,6 @@ frontendCss r = do
   historyPageCss
   txInfoPageCss
   bumpFeePageCss
-  removeTxPageCss
   infoPageCss
   initialPageCss
   inputCss
@@ -1028,11 +1027,6 @@ bumpFeePageCss :: Css
 bumpFeePageCss = do
   ".bump-fee-page" ? do
     textAlign $ alignSide sideLeft
-
-removeTxPageCss :: Css
-removeTxPageCss = do
-  ".remove-tx-page" ? do
-    textAlign $ alignSide sideCenter
 
 legoStyles :: Css
 legoStyles = do

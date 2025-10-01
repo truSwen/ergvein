@@ -14,7 +14,6 @@ module Ergvein.Core.Node.Monad(
   , requestBroadcast
   , sendRandomNode
   , getNodeHeightBtc
-  , clearNodeConns
   ) where
 
 import Control.Monad.IO.Class
@@ -91,10 +90,10 @@ requestFromNode reqE = do
     in liftIO . nodeReqFire $ M.singleton cur $ M.singleton u $ NodeMsgReq req
 {-# INLINE requestFromNode #-}
 
-postNodeMessage :: MonadNode t m => Currency -> Event t (SockAddr, NodeMessage) -> m (Event t ())
+postNodeMessage :: MonadNode t m => Currency -> Event t (SockAddr, NodeMessage) -> m ()
 postNodeMessage cur reqE = do
   nodeReqFire <- getNodeReqFire
-  performFork $ ffor reqE $ \(u, msg) ->
+  performFork_ $ ffor reqE $ \(u, msg) ->
     liftIO . nodeReqFire $ M.singleton cur $ M.singleton u msg
 {-# INLINE postNodeMessage #-}
 
@@ -152,8 +151,3 @@ getNodeHeightBtc = do
   let heightD = join $ ffor conMapD $ \connMap ->
         L.foldl' (\d1 d2 -> ffor2 d1 d2 max) (pure Nothing) (nodeconHeight <$> M.elems connMap)
   holdUniqDyn heightD
-
-clearNodeConns :: MonadNode t m => Event t () -> m (Event t ())
-clearNodeConns clearE = do
-  ref <- getNodeConnRef
-  performEvent $ ffor clearE $ const $ writeExternalRef ref mempty

@@ -29,6 +29,7 @@ module Ergvein.Types.Currency (
 
 import Control.DeepSeq
 import Data.Fixed hiding (resolution)
+import Data.Flat
 import Data.Ratio
 import Data.SafeCopy
 import Data.Serialize (Serialize, get, put)
@@ -36,7 +37,6 @@ import Data.Text (Text)
 import Data.Time
 import Data.Time.Clock.POSIX
 import Data.Word
-import Flat
 import Text.Printf
 
 import Ergvein.Aeson
