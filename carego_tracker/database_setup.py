@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 def setup_database():
-    """Létrehozza az adatbázist és a szükséges táblákat a szkript mappájában."""
+    """Létrehozza az adatbázist, a szükséges táblákat, és feltölti mintaadatokkal."""
     try:
         # Az adatbázis fájl helyének meghatározása a szkripthez képest
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tracker.db')
@@ -10,6 +10,8 @@ def setup_database():
         # Csatlakozás az adatbázishoz (létrehozza, ha nem létezik)
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
+
+        # --- Táblák Létrehozása ---
 
         # Orders (Megrendelések) tábla létrehozása
         cursor.execute('''
@@ -34,6 +36,32 @@ def setup_database():
             )
         ''')
         print("A 'LocationUpdates' tábla sikeresen létrehozva vagy már létezik.")
+
+        # --- Mintaadatok Beszúrása (Javasolt Kiegészítés) ---
+        
+        # Ellenőrizzük, hogy az Orders tábla üres-e, hogy ne szúrjunk be duplikált adatokat
+        cursor.execute("SELECT COUNT(id) FROM Orders")
+        # A fetchone() egy tuple-t ad vissza, pl. (0,) vagy (5,), ezért kell az első elem.
+        if cursor.fetchone()[0] == 0:
+            print("Mintaadatok beszúrása...")
+            sample_orders = [
+                ('CAREGO-TEST-123', 'Felvéve'),
+                ('CAREGO-TEST-456', 'Kiszállítás alatt'),
+                ('CAREGO-TEST-789', 'Központi raktárban')
+            ]
+            cursor.executemany("INSERT INTO Orders (tracking_code, status) VALUES (?, ?)", sample_orders)
+            print(f"{len(sample_orders)} mintamegrendelés hozzáadva az 'Orders' táblához.")
+
+            # Hozzáadhatunk egy minta helyzetfrissítést is az egyik rendeléshez
+            sample_location_update = ('CAREGO-TEST-456', 47.4979, 19.0402) # Budapest koordinátái
+            cursor.execute(
+                "INSERT INTO LocationUpdates (order_tracking_code, latitude, longitude) VALUES (?, ?, ?)",
+                sample_location_update
+            )
+            print("Egy minta helyzetfrissítés hozzáadva a 'LocationUpdates' táblához.")
+        else:
+            print("Az 'Orders' tábla már tartalmaz adatokat, a mintaadatok beszúrása kihagyva.")
+
 
         # Változtatások mentése és kapcsolat bezárása
         conn.commit()
